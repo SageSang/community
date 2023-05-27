@@ -1,8 +1,14 @@
 package com.nowcoder.community.controller;
 
+import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -26,7 +35,13 @@ import java.util.Map;
 public class LoginController implements CommunityConstant {
 
     @Autowired
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
+    @Autowired
     private UserService userService;
+
+    @Autowired
+    private Producer kapchaProducer;
 
     /**
      * Gets register page.
@@ -72,6 +87,7 @@ public class LoginController implements CommunityConstant {
 
     /**
      * 邮件激活账号业务
+     * RESTFUL风格：http://localhost:8080/community/activation/101/code
      *
      * @param model
      * @param userId
@@ -94,4 +110,29 @@ public class LoginController implements CommunityConstant {
         return "site/operate-result";
     }
 
+    /**
+     * 生成验证码用于显示，并把结果存入session中.
+     *
+     * @param response the response
+     * @param session  the session
+     */
+    @GetMapping("/kaptcha")
+    public void getKaptcher(HttpServletResponse response, HttpSession session) {
+        // 生成验证码
+        String text = kapchaProducer.createText();
+        BufferedImage image = kapchaProducer.createImage(text);
+
+        // 验证码存入session
+        session.setAttribute("kaptcha", text);
+
+        // 将图片输出给浏览器
+        response.setContentType("image/png");
+        try {
+            ServletOutputStream os = response.getOutputStream();
+            ImageIO.write(image, "png", os);
+        } catch (IOException e) {
+            logger.error("响应验证码失败：" + e.getMessage());
+        }
+
+    }
 }
