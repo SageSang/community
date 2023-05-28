@@ -189,10 +189,21 @@ public class UserService implements CommunityConstant {
 
     /**
      * 退出的业务逻辑
+     *
      * @param ticket
      */
     public void logout(String ticket) {
         loginTicketMapper.updateStatus(ticket, 1);
+    }
+
+    /**
+     * 根据凭证查询对应的LoginTicket
+     *
+     * @param ticket
+     * @return
+     */
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
     }
 
 }
