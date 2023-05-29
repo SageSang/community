@@ -9,6 +9,10 @@
         id, user_id, title, content, type, status, create_time, comment_count, score
     </sql>
 
+    <sql id="insertFields">
+        user_id, title, content, type, status, create_time, comment_count, score
+    </sql>
+
     <!--List<DiscussPost> selectDiscussPosts(int userId, int offset, int limit);-->
     <select id="selectDiscussPosts" resultType="DiscussPost">
         select
@@ -31,5 +35,11 @@
             and user_id=#{userId}
         </if>
     </select>
+
+    <!--int insertDiscussPost(DiscussPost discussPost);-->
+    <insert id="insertDiscussPost" parameterType="DiscussPost" keyProperty="id">
+        insert into discuss_post (<include refid="insertFields"></include>)
+        values (#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
+    </insert>
 
 </mapper>
