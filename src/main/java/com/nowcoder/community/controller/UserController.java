@@ -1,5 +1,6 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
@@ -59,6 +60,7 @@ public class UserController {
      *
      * @return the setting page
      */
+    @LoginRequired
     @GetMapping("/setting")
     public String getSettingPage() {
         return "site/setting";
@@ -71,6 +73,7 @@ public class UserController {
      * @param model       the model
      * @return the string
      */
+    @LoginRequired
     @PostMapping("/upload")
     public String uploadHeader(@RequestParam("upfile") MultipartFile headerImage, Model model) {
         if (headerImage.isEmpty()) {
@@ -138,6 +141,7 @@ public class UserController {
      * @param model
      * @return
      */
+    @LoginRequired
     @PostMapping("/password")
     public String updatePassword(@RequestParam("oldPassword") String oldPassword, @RequestParam("newPassword") String newPassword, Model model) {
         if (StringUtils.isBlank(oldPassword)) {
