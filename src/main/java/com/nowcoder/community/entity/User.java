@@ -20,7 +20,6 @@ import java.util.Date;
 @Data
 public class User {
 
-    @Size(min = 0,message = "id不能为负数！")
     private int id;
     @NotBlank(message = "用户名不能为空！")
     @Size(min = 3,max = 15,message = "用户名长度必须在3到15位之间！")

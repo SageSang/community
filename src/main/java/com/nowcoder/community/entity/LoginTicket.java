@@ -22,7 +22,6 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 public class LoginTicket {
-    @Size(min = 0,message = "id不能为负数！")
     private int id;
     @Size(min = 0,message = "id不能为负数！")
     @NotBlank(message = "用户ID不能为空！")
