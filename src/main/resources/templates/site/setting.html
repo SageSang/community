@@ -112,7 +112,8 @@
 					<div class="form-group row mt-4">
 						<label for="confirm-password" class="col-sm-2 col-form-label text-right">确认密码:</label>
 						<div class="col-sm-10">
-							<input type="password" class="form-control" id="confirm-password" placeholder="再次输入新密码!" required>
+							<input type="password" class="form-control"
+								   id="confirm-password" placeholder="再次输入新密码!" required>
 							<div class="invalid-feedback">
 								两次输入的密码不一致!
 							</div>								
@@ -196,6 +197,7 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.js" crossorigin="anonymous"></script>
 	<script th:src="@{/js/global.js}"></script>
+	<script th:src="@{/js/setting.js}"></script>
 	<script>
 		$(function(){
 			bsCustomFileInput.init();
