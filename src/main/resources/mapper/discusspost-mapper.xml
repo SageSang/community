@@ -50,4 +50,11 @@
         where id = #{id};
     </select>
 
+    <!--int updateCommentCount(int id, int commentCount);-->
+    <update id="updateCommentCount">
+        update discuss_post
+        set comment_count = #{commentCount}
+        where id = #{id};
+    </update>
+
 </mapper>
