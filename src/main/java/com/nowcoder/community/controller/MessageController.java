@@ -6,13 +6,13 @@ import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -22,7 +22,7 @@ import java.util.*;
  * Description:
  *
  * @Autuor Dongjie Sang
- * @Create 2023/5/31 22:21
+ * @Create 2023 /5/31 22:21
  * @Version 1.0
  */
 @Controller
@@ -37,6 +37,14 @@ public class MessageController {
     @Autowired
     private HostHolder hostHolder;
 
+    /**
+     * Gets letter list.
+     * 私信界面
+     *
+     * @param model the model
+     * @param page  the page
+     * @return the letter list
+     */
     @GetMapping("/letter/list")
     @LoginRequired
     public String getLetterList(Model model, @Validated Page page) {
@@ -70,6 +78,15 @@ public class MessageController {
         return "site/letter";
     }
 
+    /**
+     * Gets letter detail.
+     * 私信详情界面
+     *
+     * @param conversationId the conversation id
+     * @param page           the page
+     * @param model          the model
+     * @return the letter detail
+     */
     @GetMapping("/letter/detail/{conversationId}")
     @LoginRequired
     public String getLetterDetail(@PathVariable("conversationId") String conversationId, @Validated Page page, Model model) {
@@ -95,6 +112,12 @@ public class MessageController {
         // 私信目标
         model.addAttribute("target", getLetterTarget(conversationId));
 
+        // 把未读消息改为已读
+        List<Integer> ids = getUnreadLetterIds(lettersList);
+        if (!ids.isEmpty()) {
+            messageService.readMessage(ids);
+        }
+
         return "site/letter-detail";
     }
 
@@ -109,4 +132,44 @@ public class MessageController {
         }
     }
 
+    private List<Integer> getUnreadLetterIds(List<Message> letterList) {
+        List<Integer> ids = new ArrayList<>();
+        if (letterList != null) {
+            for (Message message : letterList) {
+                if (hostHolder.getUser().getId() == message.getToId() && message.getStatus() == 0) {
+                    ids.add(message.getId());
+                }
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * 发送私信的业务逻辑
+     *
+     * @param toName  the to name
+     * @param content the content
+     * @return string
+     */
+    @PostMapping("/letter/send")
+    @ResponseBody
+    public String sendLetter(@RequestParam String toName, @RequestParam String content) {
+        User target = userService.findUserByName(toName);
+        if (target == null) {
+            return CommunityUtil.getJSONString(1, "目标用户不存在");
+        }
+        Message message = new Message();
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        if (message.getFromId() < message.getToId()) {
+            message.setConversationId(message.getFromId() + "_" + message.getToId());
+        } else {
+            message.setConversationId(message.getToId() + "_" + message.getFromId());
+        }
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        messageService.addMessage(message);
+
+        return CommunityUtil.getJSONString(0);
+    }
 }

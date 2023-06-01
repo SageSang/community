@@ -9,6 +9,10 @@
         id, from_id, to_id, conversation_id, content, status, create_time
     </sql>
 
+    <sql id="insertFields">
+        from_id, to_id, conversation_id, content, status, create_time
+    </sql>
+
     <!--List<Message> selectConversations(int userId, int offset, int limit);-->
     <select id="selectConversations" resultType="Message">
         select
@@ -70,5 +74,20 @@
             and conversation_id = #{conversationId}
         </if>
     </select>
+
+    <!--int insertMesssage(Message message);-->
+    <insert id="insertMesssage" parameterType="Message" keyProperty="id">
+        insert into message(<include refid="insertFields"></include>)
+        values (#{fromId}, #{toId}, #{conversationId}, #{content}, #{status}, #{createTime})
+    </insert>
+
+    <!--int updateStatus(List<Integer> ids, int status);-->
+    <update id="updateStatus">
+        update message set status = #{status}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 
 </mapper>
