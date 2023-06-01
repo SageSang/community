@@ -12,8 +12,8 @@ import org.springframework.stereotype.Repository;
  * @Create 2023/5/25 19:05
  * @Version 1.0
  */
-@Repository
-@Primary
+//@Repository
+//@Primary
 public class AlphaDaoMyBatisImpl implements AlphaDao {
     @Override
     public String select() {

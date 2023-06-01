@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
  * @Create 2023/5/25 17:32
  * @Version 1.0
  */
-@Controller
-@RequestMapping("/alpha")
+//@Controller
+//@RequestMapping("/alpha")
 public class AlphaController {
 
-    @Autowired
+    //@Autowired
     private AlphaService alphaService;
 
     @RequestMapping("/hello")

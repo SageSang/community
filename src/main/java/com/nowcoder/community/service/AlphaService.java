@@ -31,20 +31,20 @@ import java.util.Random;
  * @Create 2023/5/25 19:10
  * @Version 1.0
  */
-@Service
-//@Scope("prototype")
+//@Service
+// //@Scope("prototype")
 public class AlphaService {
 
-    @Autowired
+    //@Autowired
     private AlphaDao alphaDao;
 
-    @Autowired
+    //@Autowired
     private UserMapper userMapper;
 
-    @Autowired
+    //@Autowired
     private DiscussPostMapper discussPostMapper;
 
-    @Autowired
+    //@Autowired
     private TransactionTemplate transactionTemplate;
 
     public AlphaService() {
