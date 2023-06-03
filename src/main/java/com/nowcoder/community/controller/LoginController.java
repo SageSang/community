@@ -5,6 +5,8 @@ import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.RedisKeyUtil;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +26,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ClassName: LoginController
@@ -44,6 +48,9 @@ public class LoginController implements CommunityConstant {
 
     @Autowired
     private Producer kapchaProducer;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
@@ -116,19 +123,29 @@ public class LoginController implements CommunityConstant {
     }
 
     /**
-     * 生成验证码用于显示，并把结果存入session中.
+     * 生成验证码用于显示，并把结果存入Redis中。
      *
      * @param response the response
-     * @param session  the session
+     * @param session  the session （弃用session）
      */
     @GetMapping("/kaptcha")
-    public void getKaptcher(HttpServletResponse response, HttpSession session) {
+    public void getKaptcher(HttpServletResponse response/*, HttpSession session*/) {
         // 生成验证码
         String text = kapchaProducer.createText();
         BufferedImage image = kapchaProducer.createImage(text);
 
         // 验证码存入session
-        session.setAttribute("kaptcha", text);
+        //session.setAttribute("kaptcha", text);
+
+        // 验证码的归属
+        String kaptchaOwner = CommunityUtil.generateUUID();
+        Cookie cookie = new Cookie("kaptchaOwner", kaptchaOwner);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+        // 将验证码存入Redis
+        String redisKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+        redisTemplate.opsForValue().set(redisKey, text, 60, TimeUnit.SECONDS);
 
         // 将图片输出给浏览器
         response.setContentType("image/png");
@@ -141,12 +158,31 @@ public class LoginController implements CommunityConstant {
 
     }
 
+    /**
+     * Login string.
+     * 登陆的业务功能
+     *
+     * @param username   the username
+     * @param password   the password
+     * @param code       the code
+     * @param rememberMe the remember me
+     * @param model      the model
+     * @param session    the session (弃用session)
+     * @param response   the response
+     * @return the string
+     */
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password,
                         @RequestParam String code, boolean rememberMe,
-                        Model model, HttpSession session, HttpServletResponse response) {
+                        Model model/*, HttpSession session*/, HttpServletResponse response,
+                        @CookieValue("kaptchaOwner") String kaptchaOwner) {
         // 检查验证码
-        String kaptcha = (String) session.getAttribute("kaptcha");
+        //String kaptcha = (String) session.getAttribute("kaptcha");
+        String kaptcha = null;
+        if (StringUtils.isNotBlank(kaptchaOwner)) {
+            String redisKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+            kaptcha = (String) redisTemplate.opsForValue().get(redisKey);
+        }
         if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)) {
             model.addAttribute("codeMsg", "验证码不正确");
             return "site/login";
@@ -171,6 +207,7 @@ public class LoginController implements CommunityConstant {
 
     /**
      * 退出账户
+     *
      * @param ticket
      * @return
      */
