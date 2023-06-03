@@ -79,7 +79,8 @@ public class LikeService {
                 // 那么返回字符串与0 会有发生错误。
                 redisScript.setResultType(Long.class);
                 // 第一个要是script 脚本 ，第二个需要判断的key(KEYS[1])，第三个就是key所对应的值(ARGV[1])。
-                redisTemplate.execute(redisScript, Arrays.asList(LikeLock), uuidLock);
+                Long execute = (Long) redisTemplate.execute(redisScript, Arrays.asList(LikeLock), uuidLock);
+                //System.out.println("execute执行结果，1表示执行del操作，0表示未执行 ===== " + execute);
             }
 
         } else {
