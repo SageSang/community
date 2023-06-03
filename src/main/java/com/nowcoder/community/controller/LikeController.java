@@ -5,6 +5,8 @@ import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,9 @@ import java.util.Map;
 public class LikeController {
 
     @Autowired
+    private static final Logger logger = LoggerFactory.getLogger(LikeController.class);
+
+    @Autowired
     private LikeService likeService;
 
     @Autowired
@@ -41,11 +46,16 @@ public class LikeController {
     @PostMapping("/like")
     @ResponseBody
     @LoginRequired
-    public String like(@RequestParam int entityType, @RequestParam int entityId) {
+    public String like(@RequestParam int entityType, @RequestParam int entityId, @RequestParam int entityUserId) {
         User user = hostHolder.getUser();
 
         // 点赞
-        likeService.like(user.getId(), entityType, entityId);
+        try {
+            likeService.like(user.getId(), entityType, entityId, entityUserId);
+        } catch (InterruptedException e) {
+            // 线程休眠抛出的异常
+            logger.error("点赞失败：" + e.getMessage());
+        }
 
         // 数量
         long likeCount = likeService.findEntityLikeCount(entityType, entityId);
