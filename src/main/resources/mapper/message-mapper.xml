@@ -90,4 +90,53 @@
         </foreach>
     </update>
 
+    <!--Message selectLatestNotice(int userId, String topic);-->
+    <select id="selectLatestNotice" resultType="Message">
+        select
+        <include refid="insertFields"></include>
+        from message
+        where id in (
+        select max(id) from message
+        where status != 2
+        and from_id = 1
+        and to_id = #{userId}
+        and conversation_id = #{topic}
+        )
+    </select>
+
+    <!--int selectNoticeCount(int userId, String topic);-->
+    <select id="selectNoticeCount" resultType="int">
+        select count(id)
+        from message
+        where status != 2
+          and from_id = 1
+          and to_id = #{userId}
+          and conversation_id = #{topic}
+    </select>
+
+    <!--int selectNoticeUnreadCount(int userId, String topic);-->
+    <select id="selectNoticeUnreadCount" resultType="int">
+        select count(id)
+        from message
+        where status = 0
+        and from_id = 1
+        and to_id = #{userId}
+        <if test="topic!=null">
+            and conversation_id = #{topic}
+        </if>
+    </select>
+
+    <!--List<Message> selectNotices(int userId, String topic, int offset, int limit);-->
+    <select id="selectNotices" resultType="Message">
+        select
+        <include refid="selectFields"></include>
+        from message
+        where status != 2
+        and from_id = 1
+        and to_id = #{userId}
+        and conversation_id = #{topic}
+        order by create_time desc
+        limit #{offset}, #{limit};
+    </select>
+
 </mapper>

@@ -18,7 +18,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @Create 2023/5/28 18:37
  * @Version 1.0
  */
-@Component
+//@Component
 public class AlphaInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(AlphaInterceptor.class);
