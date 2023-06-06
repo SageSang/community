@@ -1,8 +1,11 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
+import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.LikeService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.slf4j.Logger;
@@ -24,7 +27,7 @@ import java.util.Map;
  * @Version 1.0
  */
 @Controller
-public class LikeController {
+public class LikeController implements CommunityConstant {
 
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(LikeController.class);
@@ -34,6 +37,9 @@ public class LikeController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private EventProducer eventProducer;
 
     /**
      * Like string.
@@ -46,7 +52,7 @@ public class LikeController {
     @PostMapping("/like")
     @ResponseBody
     @LoginRequired
-    public String like(@RequestParam int entityType, @RequestParam int entityId, @RequestParam int entityUserId) {
+    public String like(@RequestParam int entityType, @RequestParam int entityId, @RequestParam int entityUserId, @RequestParam int postId) {
         User user = hostHolder.getUser();
 
         // 点赞
@@ -66,6 +72,19 @@ public class LikeController {
         Map<String, Object> map = new HashMap<>();
         map.put("likeCount", likeCount);
         map.put("likeStatus", likeStatus);
+
+        // 触发点赞事件
+        if (likeStatus == 1) {
+            // 只有在点赞的时候才通知，取消点赞不通知
+            Event event = new Event()
+                    .setTopic(TOPIC_LIKE)
+                    .setUserId(hostHolder.getUser().getId())
+                    .setEntityType(entityType)
+                    .setEntityId(entityId)
+                    .setEntityUserId(entityUserId)
+                    .setData("postId", postId);
+            eventProducer.fireEvent(event);
+        }
 
         return CommunityUtil.getJSONString(0, null, map);
     }
