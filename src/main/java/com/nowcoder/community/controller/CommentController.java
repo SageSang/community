@@ -43,6 +43,14 @@ public class CommentController implements CommunityConstant {
     @Autowired
     private DiscussPostService discussPostService;
 
+    /**
+     * Add comment string.
+     * 发布评论
+     *
+     * @param discussPostId the discuss post id
+     * @param comment       the comment
+     * @return the string
+     */
     @PostMapping("/add/{discussPostId}")
     @LoginRequired
     public String addComment(@PathVariable("discussPostId") int discussPostId, Comment comment) {
@@ -68,6 +76,16 @@ public class CommentController implements CommunityConstant {
             }
             // 发布评论事件(Kafka是异步的，程序不会阻塞在这里，会继续向下运行，评论发布在另一个线程中实现)
             eventProducer.fireEvent(event);
+
+            if (comment.getEntityType() == ENTITY_TYPE_POST) {
+                // 触发发帖事件（修改帖子）
+                event = new Event()
+                        .setTopic(TOPIC_PUBLISH)
+                        .setUserId(comment.getUserId())
+                        .setEntityType(ENTITY_TYPE_POST)
+                        .setEntityId(discussPostId);
+                eventProducer.fireEvent(event);
+            }
 
             // 返回帖子列表
             return "redirect:/discuss/detail/" + discussPostId;

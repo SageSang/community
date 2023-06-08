@@ -124,18 +124,22 @@
 				<ul class="list-unstyled">
 					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:each="map:${conversations}">
 						<span class="badge badge-danger" th:text="${map.unreadCount}" th:if="${map.unreadCount!=0}">3</span>
-						<a href="profile.html">
+						<a th:href="@{|/user/profile/${map.target.id}|}">
 							<img th:src="${map.target.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
 						</a>
 						<div class="media-body">
 							<h6 class="mt-0 mb-3">
-								<span class="text-success" th:text="${map.target.username}">落基山脉下的闲人</span>
+								<a th:href="@{|/user/profile/${map.target.id}|}">
+									<span class="text-success" th:text="${map.target.username}">落基山脉下的闲人</span>
+								</a>
 								<span class="float-right text-muted font-size-12" th:text="${#dates.format(map.conversation.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-28 14:13:25</span>
 							</h6>
 							<div>
 								<a th:href="@{|/letter/detail/${map.conversation.conversationId}|}" th:utext="${map.conversation.content}">米粉车, 你来吧!</a>
 								<ul class="d-inline font-size-12 float-right">
-									<li class="d-inline ml-2"><a href="#" class="text-primary">共<i th:text="${map.letterCount}">5</i>条会话</a></li>
+									<li class="d-inline ml-2"><a th:href="@{|/letter/detail/${map.conversation.conversationId}|}" class="text-primary">
+										共<i th:text="${map.letterCount}">5</i>条会话</a>
+									</li>
 								</ul>
 							</div>
 						</div>

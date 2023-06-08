@@ -71,7 +71,8 @@
             <div class="row">
                 <div class="col-8">
                     <h6><b class="square"></b> 来自 <i class="text-success"
-                                                       th:utext="${target.username}">落基山脉下的闲人</i> 的私信</h6>
+                        th:utext="${target.username}">落基山脉下的闲人</i> 的私信
+                    </h6>
                 </div>
                 <div class="col-4 text-right">
                     <button type="button" class="btn btn-secondary btn-sm" onclick="back();">返回</button>
@@ -129,7 +130,7 @@
             <!-- 私信列表 -->
             <ul class="list-unstyled mt-4">
                 <li class="media pb-3 pt-3 mb-2" th:each="map:${letters}">
-                    <a href="profile.html">
+                    <a th:href="@{|/user/profile/${map.fromUser.id}|}">
                         <img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像">
                     </a>
                     <div class="toast show d-lg-block" role="alert" aria-live="assertive" aria-atomic="true">
