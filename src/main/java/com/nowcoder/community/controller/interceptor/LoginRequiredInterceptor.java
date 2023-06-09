@@ -22,9 +22,9 @@ import java.lang.reflect.Method;
  * @Create 2023/5/29 17:14
  * @Version 1.0
  */
-@Component
+//@Component
 public class LoginRequiredInterceptor implements HandlerInterceptor {
-    @Autowired
+    //@Autowired
     private HostHolder hostHolder;
 
     @Override

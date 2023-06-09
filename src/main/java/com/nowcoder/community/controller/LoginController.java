@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -213,8 +214,17 @@ public class LoginController implements CommunityConstant {
      */
     @LoginRequired
     @GetMapping("/logout")
-    public String logout(@CookieValue("ticket") String ticket) {
+    public String logout(@CookieValue("ticket") String ticket, HttpServletResponse response) {
         userService.logout(ticket);
+        // 清理SecurityContextHollder中的权限
+        SecurityContextHolder.clearContext();
+
+        // 清理权限后，认证信息还存在 session 中，没有被清理(securityContextRepository是基于session的)
+        // 我们采取覆盖的方式去清理掉cookie，从而清除认证信息。
+        // 不然会发生：在退出后再次访问需要登录的功能会显示没有权限而不是没登录
+        Cookie cookie = new Cookie("JSESSIONID", CommunityUtil.generateUUID());
+        response.addCookie(cookie);
+
         return "redirect:/login";
     }
 }

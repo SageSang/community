@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.*;
 
@@ -66,5 +67,14 @@ public class HomeController implements CommunityConstant {
     @GetMapping("/error")
     public String getErrorPage() {
         return "error/500";
+    }
+
+    /**
+     * 拒绝访问时提示页面
+     * @return
+     */
+    @GetMapping("/denied")
+    public String getDeniedPage() {
+        return "/error/404";
     }
 }
