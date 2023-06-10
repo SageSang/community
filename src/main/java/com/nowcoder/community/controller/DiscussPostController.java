@@ -1,6 +1,5 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.*;
 import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
@@ -24,7 +23,7 @@ import java.util.*;
  * Description:
  *
  * @Autuor Dongjie Sang
- * @Create 2023/5/29 21:05
+ * @Create 2023 /5/29 21:05
  * @Version 1.0
  */
 @Controller
@@ -51,9 +50,9 @@ public class DiscussPostController implements CommunityConstant {
     /**
      * 新增文章的业务
      *
-     * @param title
-     * @param content
-     * @return
+     * @param title   the title
+     * @param content the content
+     * @return string
      */
     @PostMapping("/add")
     @ResponseBody
@@ -84,15 +83,15 @@ public class DiscussPostController implements CommunityConstant {
     /**
      * 查询帖子详情及其全部评论
      *
-     * @param discussPostId
-     * @param model
-     * @param page
-     * @return
+     * @param discussPostId the discuss post id
+     * @param model         the model
+     * @param page          the page
+     * @return discuss post
      */
     @GetMapping("/detail/{discussPostId}")
     public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model, @Validated Page page) {
         // 查询帖子
-        DiscussPost post = discussPostService.findDisscussPostById(discussPostId);
+        DiscussPost post = discussPostService.findDiscussPostById(discussPostId);
         model.addAttribute("post", post);
         // 查询作者
         User user = userService.findUserById(post.getUserId());
@@ -176,4 +175,87 @@ public class DiscussPostController implements CommunityConstant {
 
         return "site/discuss-detail";
     }
+
+    /**
+     * Sets top.
+     * 帖子的置顶
+     *
+     * @param id the id
+     * @return the top
+     */
+    @PostMapping("/top")
+    @ResponseBody
+    public String setTop(int id) {
+        DiscussPost discussPostById = discussPostService.findDiscussPostById(id);
+        // 获取置顶状态，1为置顶，0为正常状态,1^1=0 0^1=1
+        int type = discussPostById.getType()^1;
+        discussPostService.updateType(id, type);
+        // 返回的结果
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", type);
+
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0, null, map);
+    }
+
+    /**
+     * Sets wonderful.
+     * 帖子的加精
+     *
+     * @param id the id
+     * @return the wonderful
+     */
+    @PostMapping("/wonderful")
+    @ResponseBody
+    public String setWonderful(int id) {
+        DiscussPost discussPostById = discussPostService.findDiscussPostById(id);
+        int status = discussPostById.getStatus()^1;
+        // 1为加精，0为正常， 1^1=0, 0^1=1
+        discussPostService.updateStatus(id, status);
+        // 返回的结果
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", status);
+
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0, null, map);
+    }
+
+    /**
+     * Sets delete.
+     * 帖子的删除
+     *
+     * @param id the id
+     * @return the delete
+     */
+    @PostMapping("/delete")
+    @ResponseBody
+    public String setDelete(int id) {
+        discussPostService.updateStatus(id, 2);
+
+        // 触发删帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_DELETE)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+
 }

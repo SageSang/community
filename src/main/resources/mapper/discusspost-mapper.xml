@@ -57,4 +57,14 @@
         where id = #{id};
     </update>
 
+    <!--int updateType(int id, int type);-->
+    <update id="updateType">
+        update discuss_post set type = #{type} where id = #{id}
+    </update>
+
+    <!--int updateStatus(int id, int status);-->
+    <update id="updateStatus">
+        update discuss_post set status = #{status} where id = #{id}
+    </update>
+
 </mapper>

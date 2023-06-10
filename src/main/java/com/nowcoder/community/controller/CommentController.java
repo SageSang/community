@@ -14,7 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 
@@ -68,7 +67,7 @@ public class CommentController implements CommunityConstant {
                     .setData("postId", discussPostId);
             // 根据实体类型的不同，获取不同的作者
             if (comment.getEntityType() == ENTITY_TYPE_POST) {
-                DiscussPost target = discussPostService.findDisscussPostById(comment.getEntityId());
+                DiscussPost target = discussPostService.findDiscussPostById(comment.getEntityId());
                 event.setEntityUserId(target.getUserId());
             } else if (comment.getEntityType() == ENTITY_TYPE_COMMENT) {
                 Comment target = commentService.findCommentById(comment.getEntityId());
