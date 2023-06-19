@@ -28,7 +28,7 @@ import java.util.Map;
  * Description:
  *
  * @Autuor Dongjie Sang
- * @Create 2023/6/17 23:32
+ * @Create 2023 /6/17 23:32
  * @Version 1.0
  */
 @Controller
@@ -48,6 +48,16 @@ public class ShareController implements CommunityConstant {
     @Value("${wk.image.storage}")
     private String wkImageStorage;
 
+    @Value("${qiniui.bucket.share.url}")
+    private String shareBucketUrl;
+
+    /**
+     * Share string.
+     * 生成长图的业务逻辑
+     *
+     * @param htmlUrl the html url
+     * @return the string
+     */
     @GetMapping("/share")
     @ResponseBody
     public String share(String htmlUrl) {
@@ -64,12 +74,24 @@ public class ShareController implements CommunityConstant {
 
         // 返回访问路径
         Map<String, Object> map = new HashMap<>();
-        map.put("shareUrl", domin + contextPath + "/share/image/" + fileName);
+        // 使用七牛云代替本地存储，废弃原来的路径
+        //map.put("shareUrl", domin + contextPath + "/share/image/" + fileName);
+        map.put("shareUrl", shareBucketUrl + "/" + fileName);
 
         return CommunityUtil.getJSONString(0, null, map);
     }
 
+    /**
+     * Gets share image.
+     * 获取长图的业务逻辑
+     *
+     * -------------->废弃此方法了,采用七牛云服务器替代本地存储<---------------
+     *
+     * @param fileName the file name
+     * @param response the response
+     */
     @GetMapping("/share/image/{fileName}")
+    @Deprecated
     public void getShareImage(@PathVariable("fileName") String fileName, HttpServletResponse response) {
         if (StringUtils.isBlank(fileName)) {
             throw new IllegalArgumentException("文件名不能为空!");
