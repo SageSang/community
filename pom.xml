@@ -13,6 +13,8 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>community</name>
     <description>community</description>
+    <packaging>war</packaging>
+
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -145,6 +147,7 @@
     </dependencies>
 
     <build>
+        <finalName>community</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
