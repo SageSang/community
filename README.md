@@ -103,19 +103,19 @@ redis-cli -a 123456 -p 6379 -c -raw
 
 原因：SpringBoot 的 spring-boot-starter-data-redis 默认是以 lettuce 作为连接池的， 而在 lettuce，elasticsearch transport 中都会依赖 netty, 二者的 netty 版本不一致，不能够兼容。NettyRuntime 类中有下面的方法，启动的时候 Redis 和 ElasticSearch 都会调用，然后就会报下面绿字错误。即 Redis 先设置好了 availableProcessors 处理器，es 又来设置，系统就会认为重复了，就不会启动。
 
-![image-20230625164244060](README.assets/image-20230625164244060.png)
+![image-20230625164244060](https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251830851.png)
 
 是由 es 调用这段代码所产生的错误！在 es 底层代码 Netty4Utils 类中能看到下面代码，只要调用了红框内的代码，因为 Redis 已经初始化过 availavleProcessors 了，所以不为 0，则 es 就会报错。
 
-<img src="README.assets/image-20230625164333743.png" alt="image-20230625164333743" style="zoom:50%;" />
+<img src="https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251830536.png" alt="image-20230625164333743" style="zoom:50%;" />
 
 解决方案：es 中的处理比较狭隘，别人也可以依赖 netty 呀，所以我们可以修改源码位置留的开关，来达到不报错的目的。这个开关可以在在启动类初始化的时候进行配置，设置为 false 后，就会跳过下面会报错的检查了。
 
-<img src="README.assets/image-20230625164451762.png" alt="image-20230625164451762" style="zoom:67%;" />
+<img src="https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251830380.png" alt="image-20230625164451762" style="zoom:67%;" />
 
 启动类初始化的时候进行配置来解决问题：
 
-<img src="README.assets/image-20230625164504886.png" alt="image-20230625164504886" style="zoom: 67%;" />
+<img src="https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251830823.png" alt="image-20230625164504886" style="zoom: 67%;" />
 
 还有一种解决方法，直接使用 es7.x ，升级 es7.x 后不会遇到这个问题了。当然，es7 与 es6 的操作差距很大，有很多变化。我采用的是使用 es7 来解决这个问题。
 
