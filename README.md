@@ -4,15 +4,35 @@
 
 一个基本功能完整的论坛项目。项目主要功能有：基于邮件激活的注册方式，基于 MD5 加密与加盐的密码存储方式，登陆功能加入了随机验证码的验证。实现登陆状态的检查、为游客和已登录用户展示不同界面与功能。实现不同用户的权限控制和网站数据统计(UV、DAU)，管理员可以查看网站数据统计和网站监控信息。支持用户上传头像，实现发布帖子、评论帖子、热帖排行、发送私信与敏感词过滤等功能。实现了点赞关注与系统通知功能。支持全局搜索帖子信息的功能。
 
-核心功能具体实现：
+### 核心功能具体实现
 
 1. 通过对登录用户颁发登录凭证，将登陆凭证存进 Redis 中来记录登录用户登录状态，使用拦截器进行登录状态检查，使用 Spring Security 实现权限控制，解决了 http 无状态带来的缺陷，保护需登录或权限才能使用的特定资源。
 2. 使用 ThreadLocal 在当前线程中存储用户数据，代替 session 的功能便于分布式部署。在拦截器的 preHandle 中存储用户数据并构建用户认证的结果存入 SecurityContext，在 postHandle 中将用户数据存入 Model，在 afterCompletion 中清理用户数据。
-3. 使用 Redis 的集合数据类型来解决踩赞、相互关注功能，采用事务管理，保证数据的正确，采用“先更新数据库，再删除缓存”策略保证数据库与缓存数据的一致性。采用 Redis 存储验证码，解决性能问题和分布式部署时的验证码需求。采用 Redis 的 HyperLogLog 存储每日 UV、BitMap 存储 DAU，实现网站数据统计的需求。
+3. 使用 Redis 的集合数据类型来解决踩赞、相互关注功能，采用事务管理，保证数据的正确，采用“先更新数据库，再删除缓存”策略保证数据库与缓存数据的一致性。采用 Redis 存储验证码，解决性能问题和分布式部署时的验证码需求。采用 Redis 的 HyperLogLog 存储每日 UV、Bitmap 存储 DAU，实现网站数据统计的需求。
 4. 使用 Kafka 作为消息队列，在用户被点赞、评论、关注后以系统通知的方式推送给用户，用户发布或删除帖子后向 elasticsearch 同步，wk 生成长图后将长图上传至云服务器，对系统进行解耦、削峰。
 5. 使用 elasticsearch + ik 分词插件实现全局搜索功能，当用户发布、修改或删除帖子时，使用 Kafka 消息队列去异步将帖子给 elasticsearch 同步。
 6. 使用分布式定时任务 Quartz 定时计算帖子分数，来实现热帖排行的业务功能。
 7. 对频繁需要访问的数据，如用户信息、帖子总数、热帖的单页帖子列表，使用 Caffeine 本地缓存 + Redis 分布式缓存的多级缓存，提高服务器性能，实现系统的高可用。
+
+### 核心技术
+
+- Spring Boot、SSM
+- Redis、Kafka、Elasticsearch
+- Spring Security、Quartz、Caffeine
+
+### 项目亮点
+
+- 项⽬构建在 Spring Boot+SSM 框架之上，并统⼀的进⾏了状态管理、事务管理、异常处理；
+- 利⽤ Redis 实现了点赞和关注功能，单机可达 5000TPS；
+- 利⽤ Kafka 实现了异步的站内通知，单机可达 7000TPS；
+- 利⽤ Elasticsearch 实现了全⽂搜索功能，可准确匹配搜索结果，并⾼亮显示关键词；
+- 利⽤ Caffeine+Redis 实现了两级缓存，并优化了热⻔帖⼦的访问，单机可达 8000QPS。
+- 利⽤ Spring Security 实现了权限控制，实现了多重⻆⾊、URL 级别的权限管理；
+- 利⽤ HyperLogLog、Bitmap 分别实现了 UV、DAU 的统计功能，100 万⽤户数据只需\*M 内存空间；
+- 利⽤ Quartz 实现了任务调度功能，并实现了定时计算帖⼦分数、定时清理垃圾⽂件等功能；
+- 利⽤ Actuator 对应⽤的 Bean、缓存、⽇志、路径等多个维度进⾏了监控，并通过⾃定义的端点对数据库连接进⾏了监控。
+
+<img src="https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251853028.png" alt="image-20230625185100425" style="zoom:50%;" />
 
 ## 软件架构
 
@@ -103,7 +123,7 @@ redis-cli -a 123456 -p 6379 -c -raw
 
 原因：SpringBoot 的 spring-boot-starter-data-redis 默认是以 lettuce 作为连接池的， 而在 lettuce，elasticsearch transport 中都会依赖 netty, 二者的 netty 版本不一致，不能够兼容。NettyRuntime 类中有下面的方法，启动的时候 Redis 和 ElasticSearch 都会调用，然后就会报下面绿字错误。即 Redis 先设置好了 availableProcessors 处理器，es 又来设置，系统就会认为重复了，就不会启动。
 
-![image-20230625164244060](https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251830851.png)
+![](https://cdn.staticaly.com/gh/SageSang/picx-images-hosting@master/img/202306251830851.png)
 
 是由 es 调用这段代码所产生的错误！在 es 底层代码 Netty4Utils 类中能看到下面代码，只要调用了红框内的代码，因为 Redis 已经初始化过 availavleProcessors 了，所以不为 0，则 es 就会报错。
 
