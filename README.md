@@ -336,3 +336,7 @@ spring.quartz.properties.org.quartz.jobStore.isClustered=true
 spring.quartz.properties.org.quartz.threadPool.class=org.quartz.simpl.SimpleThreadPool
 spring.quartz.properties.org.quartz.threadPool.threadCount=5
 ```
+
+
+
+**如果有帮助到大家的话，留下你的 star 呗 ~**
